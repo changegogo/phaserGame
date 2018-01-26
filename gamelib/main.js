@@ -20,11 +20,12 @@ var states = {
 	        game.load.crossOrigin = 'anonymous'; // 设置跨域
 	        game.load.image('homepagebg', 'images/homepagebg.png');//首页-背景
 	        
+	        
 	        game.load.image('startbtn', 'images/startbtn.png'); //首页-开始游戏按钮
 	        game.load.image('rulebtn', 'images/rulesbtn.png'); //首页-活动规则按钮
 	        game.load.image('myprizebtn', 'images/myprizebtn.png'); //首页-我的奖品按钮
 	        game.load.image('sharebtn', 'images/sharebtn.png'); //首页-分享按钮 、  结束页-分享按钮
-	        game.load.spritesheet('dude', 'images/dude.png', 360, 422); //游戏主角
+	        game.load.spritesheet('dude', 'images/dude21.png', 47, 55); //游戏主角
 	       
 	        
 	        game.load.image('playbg', 'images/playbg.png');//游戏页-背景
@@ -173,17 +174,24 @@ var states = {
             scoreMusic = game.add.audio('scoreMusic');
             bombMusic = game.add.audio('bombMusic');
     		// 添加背景
-	        var bg = game.add.image(0, 0, 'playbg');
+	        /*var bg = game.add.image(0, 0, 'playbg');
 	        bg.width = game.world.width;
-	        bg.height = game.world.height;
+	        bg.height = game.world.height;*/
+	       
+	        this.bg = game.add.tileSprite(0, 0, game.world.width, game.world.height, 'playbg'); 
+	        game.physics.enable(this.bg, Phaser.Physics.ARCADE); 
+	        // 滚动背景的像素宽高
+	        this.bgImg = game.cache.getImage('playbg');
+	        this.bg.tileScale.x = game.world.width / this.bgImg.width;
+	        this.bg.tileScale.y = game.world.height / this.bgImg.height;
     		
 	    	//添加主角
 	        this.car = this.game.add.sprite(game.world.centerX, game.world.height - 100, 'dude');
-	        this.car.width = 120;
-          	this.car.height= 140;
+	        this.car.width = 100;
+          	this.car.height= 100;
 	        this.car.anchor.setTo(0.5, 0.5);
 	        game.physics.arcade.enable(this.car);
-          	this.car.body.setSize(120,140,0,0); 
+          	this.car.body.setSize(30,50,0,0); 
 	        // 创建动画
 	    	this.car.animations.add('left', [8, 10, 9], 10, true);
 	    	this.car.animations.add('center', [0,1,2,3,4,5,6,7], 10, true);
@@ -360,6 +368,7 @@ var states = {
 	    },
 	    this.addmystones = function(type,n){
 	    	// 随机[0,2]的整数,确定下落的跑道
+	    	console.log(n);
 		    var num = Math.floor(Math.random()*3);
 	    	for(var i=0;i<n;i++){
 		    	// 从group中获取第一个死亡的对象
@@ -375,12 +384,13 @@ var states = {
 			  		obstacle.type = type;
 		        	var	halfRoadWidth = (game.world.width-grassBeltWidth*2)/6;
 		        	var x = grassBeltWidth+ halfRoadWidth*(num*2+1)-obstacle.width/2;
-			  		var y = -obstacle.height;
+			  		//var y = -obstacle.height;
+			  		var y = (obstacle.height+10)*(n-i-1);;
 			  		// 重新设置位置
 			        obstacle.reset(x, y);
 			        if(type==='coin'){
 			        	// 创建动画
-				    	obstacle.animations.add('jump', [0, 1,], 10, true);
+				    	obstacle.animations.add('jump', [0, 1,], 6, true);
 				  		obstacle.animations.play('jump');
 			        }
 			    //}   
@@ -397,6 +407,7 @@ var states = {
 	        this.remainTimeText.text = "00: "+timeStr;
 	        //随着时间进行，速度越来越快
 	        var v = move_velocity + (60-this.remainTime)*20;
+	        this.bg.autoScroll(0, v/(game.world.height / this.bgImg.height));
 	        this.obstacles.forEachAlive(function(item){
 	    		item.body.velocity.y = v;
 	    	});
@@ -432,6 +443,8 @@ var states = {
 			    // 播放音效
 	    		scoreMusic.play();
 	    	}else{
+	    		// 设置背景静止
+	    		this.bg.autoScroll(0, 0);
 	    		imageName = 'plus100';//TODO
 	    		this.allStopMove();
 	    		// 播放音效
